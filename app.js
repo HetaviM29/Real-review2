@@ -1,95 +1,33 @@
 const express = require('express');
-const app = express();
 const mongoose = require('mongoose');
-const multer = require('multer');
-const path = require('path');
+const bodyParser = require('body-parser');
 const port = 3000;
+require('dotenv').config();
+const app = express();
 
-const Image = require('./models/imagemodel');
-mongoose.connect('mongodb://localhost:27017/imageupload');
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('MongoDB connection error:', err));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-const storage = multer.diskStorage({
-    destination: './public/images/',
-    filename: function(req, file , cb){
-        cb(null , Date.now() + path.extname(file.originalname));
-    },
-});
+app.set('view engine', 'ejs');
+app.use(express.static('./public'));
 
-const upload = multer({storage: storage});
+const imageRouter = require('./routes/imageRoute');
+app.use('/', imageRouter);
 
-app.set('view engine' , 'ejs');
-app.use(express.static('public'));
-
-
-
-
-//post for upload
-app.post('/images' , upload.single('image'),async(req,res)=>{
-    const filename = req.file.filename;
-
-    const image = new Image({
-        filename: filename,
-        review: ' ',
-    });
-
-    await image.save();
-
-    res.render('index',{
-        image: `/images/${filename}`,
-        review: ' ',
-        images: await Image.find(),
-        error: null,
-    })
-
-    
-});
-
-
-//download route
-app.get('/download/:filename' , (req,res)=>{
-    const file = path.join(__dirname, 'public/images' , req.params.filename);
-    res.download(file); 
-})
-
-app.post('/review/:filename' , async(req,res)=>{
-    try{
-    const filename = req.params.filename;
-    const review = req.body.review;  
-    
-    const image = await Image.findOneAndUpdate(
-        {filename: filename},
-        {review: review},
-        {new: true}
-    );
-
-    if (!image){
-        throw new Error('Image not found');
-    }
-
-    res.render('index',{
-        image:  `/images/${filename}`,
-        review: review,
-        images: await Image.find(),
-        error: null,
-    })
-    }catch(err){
-        console.error(err);
-        res.render('index' , {image: null , review: null , images:[] , error: 'Error saving review'});
-    }
-});
-
-app.get('/' , async(req , res)=> {
-    const images = await Image.find();
-    res.render('index' , {
-        images: images,
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).render('index', {
+        images: [],
         image: null,
         review: null,
-        error: null,
+        error: 'Something went wrong!'
     });
-})
-app.listen(port , ()=>{
+});
+
+app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
-})
+});
