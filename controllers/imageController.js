@@ -1,6 +1,6 @@
 const imageService = require('../services/imageService');
 const { toImageDTO } = require('../dtos/imageDTO');
-
+const { getImageFilePath } = require('../services/imageService');
 const renderIndex = async (res, overrides = {}) => {
     const images = await imageService.getAllImages();
     const imageDTOs = images.map(toImageDTO);
