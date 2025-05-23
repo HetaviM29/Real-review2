@@ -1,0 +1,123 @@
+{
+	"info": {
+		"_postman_id": "f8e47f06-3c04-4f52-bb7e-a2dae5947bb0",
+		"name": "Real Review",
+		"description": "Real review is a real-estate app where user's can upload pictures of their locality , add reviews as well as download images .",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45252542",
+		"_collection_link": "https://hetavimodi.postman.co/workspace/Hetavi-Modi's-Workspace~ee9b3b4f-4276-4a6e-872c-3f537373064e/collection/45252542-f8e47f06-3c04-4f52-bb7e-a2dae5947bb0?action=share&source=collection_link&creator=45252542"
+	},
+	"item": [
+		{
+			"name": "Home Page",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://16.16.167.244:3000/",
+					"protocol": "http",
+					"host": [
+						"16",
+						"16",
+						"167",
+						"244"
+					],
+					"port": "3000",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/images",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/D:/Real review2/public/images/1747985846277.jpeg"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://16.16.167.244:3000/images",
+					"protocol": "http",
+					"host": [
+						"16",
+						"16",
+						"167",
+						"244"
+					],
+					"port": "3000",
+					"path": [
+						"images"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/review/:filename",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "review",
+							"value": "Great photo",
+							"description": "this is a test review",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://16.16.167.244:3000/review/1747986526449.jpg",
+					"protocol": "http",
+					"host": [
+						"16",
+						"16",
+						"167",
+						"244"
+					],
+					"port": "3000",
+					"path": [
+						"review",
+						"1747986526449.jpg"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/download/:filename",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://16.16.167.244:3000/download/1747986526449.jpg",
+					"protocol": "http",
+					"host": [
+						"16",
+						"16",
+						"167",
+						"244"
+					],
+					"port": "3000",
+					"path": [
+						"download",
+						"1747986526449.jpg"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
