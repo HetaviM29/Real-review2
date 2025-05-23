@@ -21,7 +21,7 @@ const uploadImage = async (req, res) => {
         }
 
         const savedImage = await imageService.saveImage(req.file.filename);
-        res.status(201).json({ image: savedImage.filename });
+        res.redirect('/');
     } catch (error) {
         console.error('Upload Image Error:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -42,7 +42,7 @@ const reviewImage = async (req, res) => {
             return res.status(404).json({ error: 'Image not found' });
         }
 
-        res.status(200).json({ image: updated.filename, review });
+        res.redirect('/');
     } catch (error) {
         console.error('Review Image Error:', error);
         res.status(500).json({ error: 'Internal server error' });
