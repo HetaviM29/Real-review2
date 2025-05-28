@@ -1,7 +1,7 @@
 const toImageDTO = (imageDoc) => {
     return {
         filename: imageDoc.filename,
-        review: imageDoc.review,
+        reviews: imageDoc.reviews,
         imageUrl: `/images/${imageDoc.filename}`,
     };
 };

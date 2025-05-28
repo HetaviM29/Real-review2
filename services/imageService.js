@@ -11,7 +11,11 @@ const getAllImages = async () => {
 };
 
 const addReview = async (filename, review) => {
-    return await Image.findOneAndUpdate({ filename }, { review }, { new: true });
+     return await Image.findOneAndUpdate(
+        { filename },
+        { $push: { reviews: review } },
+        { new: true }
+    );
 };
 
 const getImageByFilename = async (filename) => {
