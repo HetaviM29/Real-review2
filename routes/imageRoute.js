@@ -9,12 +9,9 @@ const router = express.Router();
 // Configure S3 client
 const s3 = new S3Client({
     region: process.env.AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
 });
 
+console.log('Uploading to bucket:', process.env.AWS_S3_BUCKET);
 // Multer S3 storage
 const upload = multer({
     storage: multerS3({
