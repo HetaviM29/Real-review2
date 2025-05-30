@@ -1,9 +1,13 @@
 const Image = require('../models/imagemodel');
-const path = require('path');
-const saveImage = async (filename) => {
-    const image = new Image({ filename, review: '' });
-    await image.save();
-    return image;
+
+const saveImage = async (file) => {
+    // file.key is the S3 key, file.location is the S3 URL (from multer-s3)
+    const img = new Image({
+        filename: file.key,
+        url: file.location,
+        reviews: [],
+    });
+    return await img.save();
 };
 
 const getAllImages = async () => {
@@ -11,7 +15,7 @@ const getAllImages = async () => {
 };
 
 const addReview = async (filename, review) => {
-     return await Image.findOneAndUpdate(
+    return await Image.findOneAndUpdate(
         { filename },
         { $push: { reviews: review } },
         { new: true }
@@ -22,15 +26,9 @@ const getImageByFilename = async (filename) => {
     return await Image.findOne({ filename });
 };
 
-const getImageFilePath = (filename) => {
-    return path.join(__dirname, '..', 'public', 'images', filename);
-};
-
-
 module.exports = {
     saveImage,
     getAllImages,
     addReview,
     getImageByFilename,
-    getImageFilePath
 };

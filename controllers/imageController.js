@@ -1,6 +1,16 @@
+const { GetObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client } = require('@aws-sdk/client-s3');
 const imageService = require('../services/imageService');
 const { toImageDTO } = require('../dtos/imageDTO');
-const { getImageFilePath } = require('../services/imageService');
+
+const s3 = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+});
+
 const renderIndex = async (res, overrides = {}) => {
     const images = await imageService.getAllImages();
     const imageDTOs = images.map(toImageDTO);
@@ -19,8 +29,7 @@ const uploadImage = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
-
-        const savedImage = await imageService.saveImage(req.file.filename);
+        const savedImage = await imageService.saveImage(req.file);
         res.redirect('/');
     } catch (error) {
         console.error('Upload Image Error:', error);
@@ -73,9 +82,30 @@ const getIndex = async (req, res) => {
     }
 };
 
+const serveImage = async (req, res) => {
+    try {
+        const { filename } = req.params;
+        const image = await imageService.getImageByFilename(filename);
+        if (!image) return res.status(404).send('Image not found');
+
+        const command = new GetObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: image.filename,
+        });
+        const s3Response = await s3.send(command);
+
+        res.setHeader('Content-Type', s3Response.ContentType || 'image/jpeg');
+        s3Response.Body.pipe(res);
+    } catch (error) {
+        console.error('Serve Image Error:', error);
+        res.status(500).send('Error serving image');
+    }
+};
+
 module.exports = {
     uploadImage,
     reviewImage,
     downloadImage,
-    getIndex
+    getIndex,
+    serveImage,
 };
