@@ -1,19 +1,21 @@
-const { GetObjectCommand } = require('@aws-sdk/client-s3');
-const { S3Client } = require('@aws-sdk/client-s3');
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 const imageService = require('../services/imageService');
-const { toImageDTO } = require('../dtos/imageDTO');
 
 const s3 = new S3Client({
     region: process.env.AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
 });
 
 const renderIndex = async (res, overrides = {}) => {
-    const images = await imageService.getAllImages();
-    const imageDTOs = images.map(toImageDTO);
+    const s3Images = await imageService.getAllS3Images();
+    const allReviews = await imageService.getAllReviews();
+    const reviewMap = {};
+    allReviews.forEach(r => { reviewMap[r.filename] = r.reviews; });
+
+    const imageDTOs = s3Images.map(filename => ({
+        filename,
+        url: `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${filename}`,
+        reviews: reviewMap[filename] || [],
+    }));
 
     res.render('index', {
         images: imageDTOs,
@@ -29,7 +31,6 @@ const uploadImage = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
-        const savedImage = await imageService.saveImage(req.file);
         res.redirect('/');
     } catch (error) {
         console.error('Upload Image Error:', error);
@@ -85,12 +86,9 @@ const getIndex = async (req, res) => {
 const serveImage = async (req, res) => {
     try {
         const { filename } = req.params;
-        const image = await imageService.getImageByFilename(filename);
-        if (!image) return res.status(404).send('Image not found');
-
         const command = new GetObjectCommand({
             Bucket: process.env.AWS_S3_BUCKET,
-            Key: image.filename,
+            Key: filename,
         });
         const s3Response = await s3.send(command);
 
@@ -98,7 +96,7 @@ const serveImage = async (req, res) => {
         s3Response.Body.pipe(res);
     } catch (error) {
         console.error('Serve Image Error:', error);
-        res.status(500).send('Error serving image');
+        res.status(404).send('Image not found');
     }
 };
 

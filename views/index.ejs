@@ -95,7 +95,7 @@
                 <% images.forEach(function(img) { %>
                 <div class="col-md-4 gallery-item">
                     <div class="card">
-                        <img src="/image/<%= img.filename %>" class="card-img-top img-preview"/>
+                        <img src="/image/<%= img.filename %>" class="img-preview" alt="Image" />
                         <div class="card-body">
                             <% if (img.reviews && img.reviews.length > 0) { %>
                                 <div class="review-box mb-3">

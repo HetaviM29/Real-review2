@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const imageSchema = new mongoose.Schema({
-    filename: String, 
+    filename: { type: String, required: true, unique: true }, // S3 key
     reviews: [String],
 });
 
