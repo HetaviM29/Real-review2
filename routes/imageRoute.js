@@ -27,6 +27,5 @@ router.get('/', imageController.getIndex);
 router.post('/images', upload.single('image'), imageController.uploadImage);
 router.get('/download/:filename', imageController.downloadImage);
 router.post('/review/:filename', imageController.reviewImage);
-router.get('/image/:filename', imageController.serveImage);
 
 module.exports = router;
