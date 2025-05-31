@@ -33,23 +33,20 @@ const renderIndex = async (res, overrides = {}) => {
     });
 };
 
-// Add these handlers:
+
 const getIndex = async (req, res) => {
     await renderIndex(res);
 };
 
 const uploadImage = async (req, res) => {
-    // You may want to save the filename to MongoDB here if needed
     await renderIndex(res);
 };
 
 const downloadImage = async (req, res) => {
-    // Implement download logic here
     res.status(501).send('Download not implemented');
 };
 
 const reviewImage = async (req, res) => {
-    // Implement review logic here
     res.status(501).send('Review not implemented');
 };
 
