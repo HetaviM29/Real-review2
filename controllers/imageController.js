@@ -17,13 +17,14 @@ const renderIndex = async (res, overrides = {}) => {
         });
 
         const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour
+        console.log("Generated signed URL:", signedUrl);
         return {
             filename,
             url: signedUrl,
             reviews: reviewMap[filename] || [],
         };
     }));
-
+    
     res.render('index', {
         images: imageDTOs,
         image: null,
