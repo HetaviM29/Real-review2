@@ -17,7 +17,6 @@ const renderIndex = async (res, overrides = {}) => {
         });
 
         const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour
-        console.log("Generated signed URL:", signedUrl);
         return {
             filename,
             url: signedUrl,
@@ -44,11 +43,42 @@ const uploadImage = async (req, res) => {
 };
 
 const downloadImage = async (req, res) => {
-    res.status(501).send('Download not implemented');
+    try {
+        const filename = req.params.filename;
+        const command = new GetObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: filename,
+        });
+
+        // Generate a signed URL that expires in 5 minutes
+        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+        
+        // Redirect to the signed URL for download
+        res.redirect(signedUrl);
+    } catch (error) {
+        console.error('Download error:', error);
+        await renderIndex(res, { error: 'Failed to download image' });
+    }
 };
 
 const reviewImage = async (req, res) => {
-    res.status(501).send('Review not implemented');
+    try {
+        const filename = req.params.filename;
+        const review = req.body.review;
+
+        if (!review || review.trim() === '') {
+            throw new Error('Review cannot be empty');
+        }
+
+        // Add the review
+        await imageService.addReview(filename, review.trim());
+        
+        // Refresh the page
+        await renderIndex(res);
+    } catch (error) {
+        console.error('Review error:', error);
+        await renderIndex(res, { error: 'Failed to add review' });
+    }
 };
 
 module.exports = {
