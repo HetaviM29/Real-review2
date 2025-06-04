@@ -1,29 +1,32 @@
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const imageService = require('../services/imageService');
-
 const s3 = new S3Client({ region: process.env.AWS_REGION });
 
 const renderIndex = async (res, overrides = {}) => {
     const s3Images = await imageService.getAllS3Images();
     const allReviews = await imageService.getAllReviews();
     const reviewMap = {};
-    allReviews.forEach(r => { reviewMap[r.filename] = r.reviews; });
+    allReviews.forEach(r => {
+        if (!reviewMap[r.filename]) reviewMap[r.filename] = [];
+        reviewMap[r.filename].push({ reviewer: r.reviewer, review: r.review, timestamp: r.timestamp });
+    });
 
     const imageDTOs = await Promise.all(s3Images.map(async (filename) => {
-        const command = new GetObjectCommand({
-            Bucket: process.env.AWS_S3_BUCKET,
-            Key: filename,
-        });
-
-        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour
+        const command = new GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET, Key: filename });
+        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
+        const meta = await imageService.getImageMetadata(filename);
         return {
             filename,
             url: signedUrl,
-            reviews: reviewMap[filename] || [],
+            imageName: meta?.imageName || filename,
+            uploadedBy: meta?.uploadedBy || 'Unknown',
+            location: meta?.location || 'Unknown',
+            uploadDate: meta?.uploadDate,
+            reviews: reviewMap[filename] || []
         };
     }));
-    
+
     res.render('index', {
         images: imageDTOs,
         image: null,
@@ -33,13 +36,37 @@ const renderIndex = async (res, overrides = {}) => {
     });
 };
 
-
 const getIndex = async (req, res) => {
     await renderIndex(res);
 };
 
 const uploadImage = async (req, res) => {
-    await renderIndex(res);
+    try {
+        if (!req.file) throw new Error('No file uploaded');
+        await imageService.addImageMetadata({
+            filename: req.file.key,
+            imageName: req.body.imageName,
+            uploadedBy: req.body.uploadedBy,
+            location: req.body.location,
+            uploadDate: Date.now()
+        });
+        await renderIndex(res);
+    } catch (error) {
+        await renderIndex(res, { error: 'Failed to upload image' });
+    }
+};
+
+const reviewImage = async (req, res) => {
+    try {
+        const filename = req.params.filename;
+        const review = req.body.review;
+        const reviewer = req.body.reviewer || 'Anonymous';
+        if (!review || review.trim() === '') throw new Error('Review cannot be empty');
+        await imageService.addReview(filename, review.trim(), reviewer);
+        await renderIndex(res);
+    } catch (error) {
+        await renderIndex(res, { error: 'Failed to add review' });
+    }
 };
 
 const downloadImage = async (req, res) => {
@@ -49,41 +76,16 @@ const downloadImage = async (req, res) => {
             Bucket: process.env.AWS_S3_BUCKET,
             Key: filename,
         });
-
-        // Generate a signed URL that expires in 5 minutes
-        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
-        
-        // Redirect to the signed URL for download
+        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 60 }); // 1 minute expiry
         res.redirect(signedUrl);
     } catch (error) {
-        console.error('Download error:', error);
-        await renderIndex(res, { error: 'Failed to download image' });
-    }
-};
-
-const reviewImage = async (req, res) => {
-    try {
-        const filename = req.params.filename;
-        const review = req.body.review;
-
-        if (!review || review.trim() === '') {
-            throw new Error('Review cannot be empty');
-        }
-
-        // Add the review
-        await imageService.addReview(filename, review.trim());
-        
-        // Refresh the page
-        await renderIndex(res);
-    } catch (error) {
-        console.error('Review error:', error);
-        await renderIndex(res, { error: 'Failed to add review' });
+        await renderIndex(res, { error: 'Failed to generate download link' });
     }
 };
 
 module.exports = {
     getIndex,
     uploadImage,
-    downloadImage,
     reviewImage,
+    downloadImage,
 };

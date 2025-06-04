@@ -71,6 +71,9 @@
                 Upload an Image
             </h2>
             <form action="/images" method="POST" enctype="multipart/form-data" id="uploadForm">
+                <input type="text" name="imageName" class="form-control mb-3" placeholder="Enter Image Name" required>
+                <input type="text" name="uploadedBy" class="form-control mb-3" placeholder="Your Name" required>
+                <input type="text" name="location" class="form-control mb-3" placeholder="Location" required>
                 <div class="custom-file-input mb-3" id="dropZone">
                     <input type="file" name="image" accept="image/*" required class="form-control" id="imageInput" hidden/>
                     <label for="imageInput" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center">
@@ -97,29 +100,34 @@
                     <div class="card">
                  <img src="<%= img.url %>" class="img-preview" alt="Image" />
                         <div class="card-body">
-                            <% if (img.reviews && img.reviews.length > 0) { %>
-                                <div class="review-box mb-3">
-                                    <h6 class="text-primary mb-2">Reviews</h6>
-                                    <div class="row">
-                                        <% img.reviews.forEach(function(review) { %>
-                                            <div class="col-12 mb-2">
-                                                <div class="p-3 bg-light border rounded shadow-sm">
-                                                    <i class="fas fa-comment-dots text-primary me-2"></i>
-                                                    <%= review %>
-                                                </div>
-                                            </div>
-                                        <% }); %>
-                                    </div>
-                                </div>
+                            <h5 class="card-title"><%= img.imageName %></h5>
+                            <p class="card-text">
+                                Uploaded by: <%= img.uploadedBy %><br>
+                                Location: <%= img.location %><br>
+                                Uploaded at: <%= new Date(img.uploadDate).toLocaleString() %>
+                            </p>
+                            <!-- Show reviews -->
+                            <div class="review-box">
+                                <b>Reviews:</b>
+                                <% if (img.reviews && img.reviews.length > 0) { %>
+                                    <% img.reviews.forEach(function(r) { %>
+                                        <div class="mb-2">
+                                            <b><%= r.reviewer %></b>
+                                            <span class="text-muted" style="font-size:0.9em;">
+                                                <%= new Date(r.timestamp).toLocaleString() %>
+                                            </span>
+                                            <br>
+                                            <%= r.review %>
+                                        </div>
+                                    <% }); %>
+                                <% } else { %>
+                                    <span>No reviews yet.</span>
                                 <% } %>
-
+                            </div>
                             <form action="/review/<%= img.filename %>" method="POST" class="mb-2">
-                                <div class="input-group">
-                                    <input type="text" name="review" class="form-control" placeholder="Add review">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-comment"></i>
-                                    </button>
-                                </div>
+                                <input type="text" name="reviewer" class="form-control mb-2" placeholder="Your Name">
+                                <input type="text" name="review" class="form-control mb-2" placeholder="Write a review...">
+                                <button type="submit" class="btn btn-primary">Submit Review</button>
                             </form>
                             <a href="/download/<%= img.filename %>" class="btn btn-secondary btn-sm w-100">
                                 <i class="fas fa-download me-2"></i>
