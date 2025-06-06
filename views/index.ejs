@@ -65,6 +65,18 @@
         </div>
         <% } %>
 
+        <% if (deletedImages) { %>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Notice:</strong> The following images were automatically deleted by S3 after 5 days:
+            <ul>
+                <% deletedImages.forEach(function(name) { %>
+                    <li><%= name %></li>
+                <% }); %>
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <% } %>
+
         <div class="upload-container">
             <h2 class="mb-4">
                 <i class="fas fa-cloud-upload-alt me-2"></i>
