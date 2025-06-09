@@ -27,15 +27,6 @@ const getAllReviews = async () => {
     return data.Items || [];
 };
 
-const getReviewsByFilename = async (filename) => {
-    const data = await docClient.send(new QueryCommand({
-        TableName: "Reviews",
-        KeyConditionExpression: "filename = :filename",
-        ExpressionAttributeValues: { ":filename": filename }
-    }));
-    return data.Items || [];
-};
-
 const getAllS3Images = async () => {
     const command = new ListObjectsV2Command({ Bucket: process.env.AWS_S3_BUCKET });
     const data = await s3.send(command);
@@ -55,7 +46,6 @@ module.exports = {
     addImageMetadata,
     addReview,
     getAllReviews,
-    getReviewsByFilename,
     getAllS3Images,
     getImageMetadata
 };
