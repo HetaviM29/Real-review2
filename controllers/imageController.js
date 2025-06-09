@@ -12,20 +12,9 @@ const renderIndex = async (res, overrides = {}) => {
         reviewMap[r.filename].push({ reviewer: r.reviewer, review: r.review, timestamp: r.timestamp });
     });
 
-    // Get all metadata
-    const allMetadata = await Promise.all(s3Images.map(async (filename) => {
-        const meta = await imageService.getImageMetadata(filename);
-        return { filename, meta };
-    }));
-
-    // Find images that were deleted by S3 (metadata exists, but image is missing)
-    const deletedImages = [];
-    for (const { filename, meta } of allMetadata) {
-        if (!s3Images.includes(filename) && meta) {
-            deletedImages.push(meta.imageName || filename);
-        }
-    }
-
+    const reviewFilenames = [...new Set(allReviews.map(r => r.filename))];
+    const deletedImages = reviewFilenames.filter(filename => !s3Images.includes(filename));
+    
     const imageDTOs = await Promise.all(s3Images.map(async (filename) => {
         const command = new GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET, Key: filename });
         const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
@@ -46,7 +35,7 @@ const renderIndex = async (res, overrides = {}) => {
         image: null,
         review: null,
         error: overrides.error || null,
-        deletedImages: deletedImages.length > 0 ? deletedImages : null
+        deletedImages: deletedImages.length > 0 ? deletedImages : null // Pass to view
     });
 };
 
