@@ -1,6 +1,7 @@
 # 🏘️ Real Review
 
-**Real Review** is a community-driven real estate web app where users can upload photos of localities, share personal experiences, and post detailed reviews of places. Ideal for home seekers, travelers, and urban explorers!
+**Real Review** is a community-driven real estate web app where users can upload photos of localities, share personal experiences, and post detailed reviews of places. Ideal for home seekers, travelers, and urban explorers! 
+➡️ Live App: To explore the live version, visit http://13.51.159.68/
 > 🔀 **Note:** Active development is happening on the [`feature/image-upload`](https://github.com/your-username/real-review/tree/feature/image-upload) branch.  
 > Please switch to that branch to view the latest features and updates.
 
